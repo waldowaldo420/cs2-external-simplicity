@@ -1,7 +1,5 @@
 Simple external example.
 
-Note: Single threaded. Sill high performance and low CPU usage. Build as "Release".
-
 Features:
 - Aimbot
 - Triggerbot
