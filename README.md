@@ -5,5 +5,6 @@ Features:
 - Triggerbot
 - RCS
 - Player ESP
+- Experimental feature: Walkbot
 
 <img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/b9214661-a8a9-4a90-a03c-1c2b66d373cc" />
