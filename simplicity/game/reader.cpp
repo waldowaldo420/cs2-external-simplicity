@@ -93,6 +93,7 @@ namespace game
         m_snapshot.local_team = team;
         m_snapshot.local_alive = true;
         m_snapshot.local_pos = mem.read<math::Vector3>(pawn + C_BasePlayerPawn::m_vOldOrigin);
+        m_snapshot.local_view_angles = mem.read<math::Vector3>(cb + dwViewAngles);
     }
 
     void c_reader::read_players()

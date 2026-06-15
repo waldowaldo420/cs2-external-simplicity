@@ -78,4 +78,17 @@ namespace globals
         inline bool head_only = false;
         inline float capsule_scale = 1.f;
     }
+
+    namespace botwalker
+    {
+        inline bool enabled = false;
+        inline int toggle_key = 0;
+        inline float reach_distance = 60.f;
+        inline float steer_gain = 0.07f;
+        inline bool engage_enemies = true;
+        inline float engage_fov = 90.f;
+        inline float engage_smooth = 0.01f;
+        inline int burst_on_ms = 270; 
+        inline int burst_off_ms = 80; 
+    }
 }

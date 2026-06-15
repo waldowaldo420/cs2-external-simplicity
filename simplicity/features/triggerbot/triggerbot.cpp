@@ -18,25 +18,25 @@ namespace triggerbot
     struct BodySeg { int bone_a; int bone_b; float radius; };
 
     static constexpr BodySeg k_segs[] = {
-        { pelvis,     spine_0,    6.f },
-        { spine_0,    spine_1,    6.f },
-        { spine_1,    spine_2,    6.f },
-        { spine_2,    neck,       2.5f },
-        { neck,       head,       2.5f },
-        { neck,       clavicle_r, 2.f },
+        { pelvis, spine_0, 6.f },
+        { spine_0, spine_1, 6.f },
+        { spine_1, spine_2, 6.f },
+        { spine_2, neck, 2.5f },
+        { neck, head, 2.5f },
+        { neck, clavicle_r, 2.f },
         { clavicle_r, shoulder_r, 2.f },
-        { shoulder_r, elbow_r,    2.f },
-        { elbow_r,    hand_r,     2.f },
-        { neck,       clavicle_l, 2.f },
+        { shoulder_r, elbow_r, 2.f },
+        { elbow_r, hand_r, 2.f },
+        { neck, clavicle_l, 2.f },
         { clavicle_l, shoulder_l, 2.f },
-        { shoulder_l, elbow_l,    2.f },
-        { elbow_l,    hand_l,     2.f },
-        { pelvis,     hip_r,      2.5f },
-        { hip_r,      knee_r,     2.5f },
-        { knee_r,     foot_r,     2.5f },
-        { pelvis,     hip_l,      2.5f },
-        { hip_l,      knee_l,     2.5f },
-        { knee_l,     foot_l,     2.5f },
+        { shoulder_l, elbow_l, 2.f },
+        { elbow_l, hand_l, 2.f },
+        { pelvis, hip_r, 2.5f },
+        { hip_r, knee_r, 2.5f },
+        { knee_r, foot_r, 2.5f },
+        { pelvis, hip_l, 2.5f },
+        { hip_l, knee_l, 2.5f },
+        { knee_l, foot_l, 2.5f },
     };
     static constexpr int k_seg_count = static_cast<int>(
         sizeof(k_segs) / sizeof(k_segs[0]));
@@ -140,9 +140,9 @@ namespace triggerbot
         static auto last_shot = Clock::now() - std::chrono::seconds(10);
         static std::unordered_map<uintptr_t, Clock::time_point> vis_start;
 
-        const auto  now = Clock::now();
-        const int   sw = render::g_overlay.width();
-        const int   sh = render::g_overlay.height();
+        const auto now = Clock::now();
+        const int sw = render::g_overlay.width();
+        const int sh = render::g_overlay.height();
         const float cx = sw * 0.5f;
         const float cy = sh * 0.5f;
 
