@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="features\aimbot\aimbot.cpp" />
+    <ClCompile Include="features\botwalker\botwalker.cpp" />
     <ClCompile Include="features\esp\esp.cpp" />
     <ClCompile Include="features\RCS\rcs.cpp" />
     <ClCompile Include="features\triggerbot\triggerbot.cpp" />
@@ -148,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="features\aimbot\aimbot.h" />
+    <ClInclude Include="features\botwalker\botwalker.h" />
     <ClInclude Include="features\esp\esp.h" />
     <ClInclude Include="features\RCS\rcs.h" />
     <ClInclude Include="features\triggerbot\triggerbot.h" />

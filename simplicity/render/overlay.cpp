@@ -10,6 +10,7 @@
 #include "../features/aimbot/aimbot.h"
 #include "../features/rcs/rcs.h"
 #include "../features/triggerbot/triggerbot.h"
+#include "../features/botwalker/botwalker.h"
 #include <dwmapi.h>
 #include <iostream>
 #pragma comment(lib, "dwmapi.lib")
@@ -270,6 +271,7 @@ namespace render
             aimbot::update(snap);
             rcs::update(snap);
             triggerbot::update(snap);
+            botwalker::update(snap);
 
             dl->AddText(ImVec2(10.f, 10.f),
                 IM_COL32(0, 255, 0, 255),

@@ -43,6 +43,7 @@ namespace game
         math::Vector3 local_pos = {};
         math::Vector3 local_eye_pos = {};
         math::Vector3 local_aim_punch = {};
+        math::Vector3 local_view_angles = {};
         math::Matrix4x4  view_matrix = {};
         PlayerEntry players[MAX_PLAYERS]{};  
     };

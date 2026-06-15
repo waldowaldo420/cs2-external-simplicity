@@ -1,11 +1,13 @@
 ﻿#include "menu.h"
 #include "../utils/globals.h"
 #include "../imgui/imgui.h"
+#include "../game/reader.h"
+#include "../features/botwalker/botwalker.h"
 #include <cmath>
 
 namespace menu
 {
-    enum : int { TAB_AIMBOT = 0, TAB_TRIGGERBOT = 1, TAB_RCS = 2, TAB_ESP = 3 };
+    enum : int { TAB_AIMBOT = 0, TAB_TRIGGERBOT = 1, TAB_RCS = 2, TAB_ESP = 3, TAB_BOT = 4 };
 
     static int s_active_tab = 0;
 
@@ -191,6 +193,7 @@ namespace menu
         sidebar_tab("Triggerbot", TAB_TRIGGERBOT);
         sidebar_tab("RCS", TAB_RCS);
         sidebar_tab("ESP", TAB_ESP);
+        sidebar_tab("Walk Bot", TAB_BOT);
 
         ImGui::EndChild();
 
@@ -446,6 +449,162 @@ namespace menu
 
             ImGui::Columns(1);
 
+        }
+
+        if (s_active_tab == TAB_BOT)
+        {
+            const auto& snap    = game::g_reader.snapshot();
+            const std::string cur_map  = snap.map_name[0] ? snap.map_name : "Unknown";
+            const int         cur_team = snap.local_team;
+            const char*       team_str = (cur_team == 3) ? "CT" : (cur_team == 2) ? "T" : "N/A";
+
+            ImGui::Columns(2, nullptr, false);
+
+            // ---- Left column: settings ----
+            widgets::section("General");
+            ImGui::Spacing();
+            widgets::checkbox("Enabled", globals::botwalker::enabled);
+            ImGui::Spacing();
+            ImGui::Text("Toggle Key");
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - 160.f);
+            draw_keybind(globals::botwalker::toggle_key, "##kb_bot");
+            ImGui::Spacing();
+            widgets::checkbox("Engage Enemies", globals::botwalker::engage_enemies);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            widgets::section("Navigation");
+            ImGui::Spacing();
+            widgets::slider_float("Reach Distance", globals::botwalker::reach_distance, 20.f, 200.f, "%.0f");
+            ImGui::Spacing();
+            widgets::slider_float("Steer Gain", globals::botwalker::steer_gain, 0.01f, 0.3f, "%.3f");
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            widgets::section("Engagement");
+            ImGui::Spacing();
+            widgets::slider_float("Engage FOV",   globals::botwalker::engage_fov,    5.f,   90.f,  "%.0f");
+            ImGui::Spacing();
+            widgets::slider_float("Aim Speed",    globals::botwalker::engage_smooth, 0.01f, 0.40f, "%.2f");
+            ImGui::Spacing();
+            widgets::slider_int("Burst Fire (ms)",  globals::botwalker::burst_on_ms,  25, 2000);
+            ImGui::Spacing();
+            widgets::slider_int("Burst Pause (ms)", globals::botwalker::burst_off_ms, 25, 2000);
+            ImGui::Spacing();
+
+            ImGui::NextColumn();
+
+            // ---- Right column: recording / status ----
+            const int rc = botwalker::recording_count(cur_map, cur_team);
+
+            widgets::section("Status");
+            ImGui::Spacing();
+            ImGui::Text("Map: %s   Team: %s", cur_map.c_str(), team_str);
+            ImGui::Spacing();
+
+            if (botwalker::g_is_recording)
+            {
+                const int fc = botwalker::frame_count(
+                    cur_map, cur_team, botwalker::g_edit_rec);
+                ImGui::TextColored(ImVec4(1.f, 0.3f, 0.3f, 1.f),
+                    "REC  %d frames  (%.1fs)",
+                    fc, fc * (botwalker::RECORD_INTERVAL_MS / 1000.f));
+            }
+            else if (globals::botwalker::enabled && rc > 0)
+            {
+                const int fc = botwalker::frame_count(
+                    cur_map, cur_team, botwalker::g_active_rec);
+                ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.f),
+                    "Playing rec %d   frame %d / %d",
+                    botwalker::g_active_rec + 1,
+                    botwalker::g_active_frame + 1, fc);
+            }
+            else
+            {
+                ImGui::TextDisabled("Idle — enable bot or start recording.");
+            }
+            ImGui::Spacing();
+
+            widgets::section("Recording");
+            ImGui::Spacing();
+
+            if (!botwalker::g_is_recording)
+            {
+                if (ImGui::Button("Start Recording", ImVec2(-1.f, 28.f)))
+                    botwalker::start_recording(snap);
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button,
+                    ImVec4(0.55f, 0.1f, 0.1f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                    ImVec4(0.7f, 0.2f, 0.2f, 1.f));
+                if (ImGui::Button("Stop Recording", ImVec2(-1.f, 28.f)))
+                    botwalker::stop_recording();
+                ImGui::PopStyleColor(2);
+            }
+            ImGui::Spacing();
+
+            if (ImGui::Button("Clear All Recordings", ImVec2(-1.f, 26.f)))
+                botwalker::clear_all(cur_map, cur_team);
+            ImGui::Spacing();
+
+            if (ImGui::Button("Save to File", ImVec2(-1.f, 26.f)))
+                botwalker::save_recordings();
+            ImGui::Spacing();
+
+            if (ImGui::Button("Load from File", ImVec2(-1.f, 26.f)))
+                botwalker::load_recordings();
+            ImGui::Spacing();
+
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            // Recordings list
+            ImGui::BeginChild("##reclist", ImVec2(0.f, 0.f), true);
+            if (rc == 0)
+            {
+                ImGui::TextDisabled("No recordings yet.");
+                ImGui::TextDisabled("Press Start Recording, walk the path,");
+                ImGui::TextDisabled("then press Stop Recording.");
+            }
+            else
+            {
+                for (int i = 0; i < rc; i++)
+                {
+                    const int    fc  = botwalker::frame_count(cur_map, cur_team, i);
+                    const float  dur = fc * (botwalker::RECORD_INTERVAL_MS / 1000.f);
+                    const bool   active_playback =
+                        globals::botwalker::enabled &&
+                        !botwalker::g_is_recording &&
+                        i == botwalker::g_active_rec;
+                    const bool   active_edit =
+                        botwalker::g_is_recording && i == botwalker::g_edit_rec;
+
+                    if (active_playback)
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.9f, 0.4f, 1.f));
+                    else if (active_edit)
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.4f, 0.4f, 1.f));
+
+                    ImGui::Text("Rec %d: %d frames (%.1fs)",
+                        i + 1, fc, dur);
+
+                    if (active_playback || active_edit)
+                        ImGui::PopStyleColor();
+
+                    ImGui::SameLine();
+                    char lbl[32];
+                    snprintf(lbl, sizeof(lbl), "Del##d%d", i);
+                    if (ImGui::SmallButton(lbl))
+                    {
+                        botwalker::delete_recording(cur_map, cur_team, i);
+                        break;
+                    }
+                }
+            }
+            ImGui::EndChild();
+
+            ImGui::Columns(1);
         }
 
         ImGui::EndChild();
